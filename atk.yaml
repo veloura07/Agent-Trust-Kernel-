@@ -1,0 +1,34 @@
+# ============================================================================
+# AGENT TRUST KERNEL (ATK) DECLARATIVE POLICY-AS-CODE (SCHEMA VERSION: 1.0)
+# ============================================================================
+schema_version: "1.0"
+
+workspace:
+  tenant_id: "org_enterprise_tenant_01"
+  environment: "PRODUCTION"
+  multi_tenant_isolation: true
+
+governor:
+  daily_budget_ceiling: 25.50
+  token_usage_limit: 500000
+  execution_timeout_seconds: 5.0
+  velocity_burst_limit: 60
+
+compiled_constitution:
+  rules:
+    - rule_id: "RULE_NEVER_SEND_SECRETS"
+      tool: "*"
+      condition: "contains_pattern('(?i)(api_key|secret|password|bearer_token)')"
+      action: "DENY"
+    - rule_id: "RULE_RESTRICT_FINANCIALS"
+      tool: "execute_financial_transfer"
+      condition: "args['amount_usd'] > 5000.00"
+      action: "REQUIRE_HUMAN_APPROVAL"
+    - rule_id: "RULE_ALLOW_SCRAPING"
+      tool: "execute_web_scrape"
+      condition: "true"
+      action: "ALLOW"
+
+capability_token_policy:
+  default_ttl_seconds: 3600
+  cryptographic_signing_algorithm: "HS256"

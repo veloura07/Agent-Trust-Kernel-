@@ -1,0 +1,14 @@
+name = "atk-edge-gateway"
+main = "src/index_v12.ts"
+compatibility_date = "2026-06-11"
+
+[vars]
+UPSTASH_REDIS_REST_URL = "https://your-instance.upstash.io"
+REDIS_KEY_PREFIX = "atk:v12:"
+BAD_IP_SET_KEY = "bad_ips"
+LOG_LEVEL = "info"
+METRICS_ENABLED = "true"
+MAX_REQUEST_KB = "64"
+
+[ai]
+binding = "AI" 
