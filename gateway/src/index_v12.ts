@@ -21,7 +21,7 @@ async function runRedisCommand(env: Env, payload: any[]): Promise<any> {
     body: JSON.stringify(payload),
   })
   if (!response.ok) throw new Error(`Upstash Error: ${response.statusText}`)
-  const data = await response.json()
+  const data = await response.json() as any
   return data.result
 }
 

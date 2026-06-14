@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Local logs and test databases
+*.log
+atk_audit.log
+test_audit_trail.log
+.agentguard_wal.journal
+.atk_wal.journal
+.pytest_cache/
+
+# Node/Wrangler build outputs
+node_modules/
+.wrangler/
+dist/
+build/

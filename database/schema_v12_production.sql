@@ -1,20 +1,19 @@
 -- ============================================================================
--- AGENTGUARD v12 EVENT-SOURCED STORAGE PLANE & PROJECTIONS
+-- AGENT TRUST KERNEL (ATK) v12 EVENT-SOURCED STORAGE PLANE & PROJECTIONS
 -- ============================================================================
 
 CREATE SCHEMA IF NOT EXISTS atk_v12;
 
--- Drop function and triggers if they exist to avoid errors
 DROP TRIGGER IF EXISTS trg_v12_entity_registry_updated_at ON atk_v12.entity_registry;
 DROP FUNCTION IF EXISTS atk_v12.sync_updated_at();
 
-CREATE TABLE IF NOT EXISTS atk_v12.tenant_registry (
+CREATE TABLE atk_v12.tenant_registry (
     tenant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS atk_v12.entity_registry (
+CREATE TABLE atk_v12.entity_registry (
     agent_id VARCHAR(64) PRIMARY KEY,
     tenant_id UUID NOT NULL REFERENCES atk_v12.tenant_registry(tenant_id) ON DELETE RESTRICT,
     owner_email VARCHAR(255) NOT NULL,
@@ -27,7 +26,7 @@ CREATE TABLE IF NOT EXISTS atk_v12.entity_registry (
     CONSTRAINT chk_v12_lifecycle CHECK (lifecycle_state IN ('SPAWNED', 'CERTIFIED', 'DEPLOYED', 'SUSPENDED', 'RETIRED'))
 );
 
-CREATE TABLE IF NOT EXISTS atk_v12.execution_event_store (
+CREATE TABLE atk_v12.execution_event_store (
     event_id BIGSERIAL PRIMARY KEY,
     schema_version VARCHAR(16) NOT NULL DEFAULT '1.0',
     tx_id UUID NOT NULL,
@@ -38,7 +37,7 @@ CREATE TABLE IF NOT EXISTS atk_v12.execution_event_store (
     recorded_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS atk_v12.causality_dag (
+CREATE TABLE atk_v12.causality_dag (
     tx_id UUID PRIMARY KEY,
     schema_version VARCHAR(16) NOT NULL DEFAULT '1.0',
     agent_id VARCHAR(64) NOT NULL REFERENCES atk_v12.entity_registry(agent_id) ON DELETE RESTRICT,
@@ -52,7 +51,7 @@ CREATE TABLE IF NOT EXISTS atk_v12.causality_dag (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS atk_v12.vector_reputation (
+CREATE TABLE atk_v12.vector_reputation (
     agent_id VARCHAR(64) PRIMARY KEY REFERENCES atk_v12.entity_registry(agent_id) ON DELETE RESTRICT,
     safety_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
     accuracy_score NUMERIC(5, 2) NOT NULL DEFAULT 100.00,
@@ -62,9 +61,9 @@ CREATE TABLE IF NOT EXISTS atk_v12.vector_reputation (
     last_computed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_v12_event_stream_tx ON atk_v12.execution_event_store (tx_id, event_type);
-CREATE INDEX IF NOT EXISTS idx_v12_dag_lineage ON atk_v12.causality_dag USING GIN (parent_tx_ids);
-CREATE INDEX IF NOT EXISTS idx_v12_idempotency ON atk_v12.execution_event_store (idempotency_key);
+CREATE INDEX idx_v12_event_stream_tx ON atk_v12.execution_event_store (tx_id, event_type);
+CREATE INDEX idx_v12_dag_lineage ON atk_v12.causality_dag USING GIN (parent_tx_ids);
+CREATE INDEX idx_v12_idempotency ON atk_v12.execution_event_store (idempotency_key);
 
 CREATE OR REPLACE FUNCTION atk_v12.sync_updated_at()
 RETURNS TRIGGER AS $$
@@ -81,6 +80,4 @@ ALTER TABLE atk_v12.execution_event_store ENABLE ROW LEVEL SECURITY;
 ALTER TABLE atk_v12.causality_dag ENABLE ROW LEVEL SECURITY;
 ALTER TABLE atk_v12.vector_reputation ENABLE ROW LEVEL SECURITY;
 
--- Drop policy if exists to make it idempotent
-DROP POLICY IF EXISTS service_only_all ON atk_v12.execution_event_store;
 CREATE POLICY service_only_all ON atk_v12.execution_event_store FOR ALL USING (false);
