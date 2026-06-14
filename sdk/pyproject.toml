@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sel-v3"
+version = "3.0.0"
+description = "Agent Trust Kernel — Safe Execution Layer v3 Python Client SDK"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "httpx>=0.27"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sel_v3*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests requiring live gateway (deselect with '-m \"not integration\"')",
+]
+asyncio_mode = "auto"

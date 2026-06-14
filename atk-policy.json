@@ -1,0 +1,26 @@
+{
+  "capabilities": [
+    {
+      "tool": "execute_web_scrape",
+      "rules": [
+        {
+          "field": "depth_limit",
+          "operator": "GREATER_THAN",
+          "value": 3,
+          "on_violation": "BLOCK"
+        }
+      ]
+    },
+    {
+      "tool": "execute_financial_transfer",
+      "rules": [
+        {
+          "field": "amount_usd",
+          "operator": "GREATER_THAN",
+          "value": 100.0,
+          "on_violation": "ESCALATE"
+        }
+      ]
+    }
+  ]
+}
